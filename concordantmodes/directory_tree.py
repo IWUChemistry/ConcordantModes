@@ -51,7 +51,7 @@ class DirectoryTree(object):
 
         n_atoms = len(self.zmat.atom_list)
 
-        if prog_name == "molpro" or prog_name == "psi4" or prog_name == "cfour":
+        if prog_name == "molpro" or prog_name == "psi4" or prog_name == "cfour" or prog_name == "xtb":
             with open(self.template, "r") as file:
                 data = file.readlines()
             if self.options.pert_off_diag:
@@ -78,13 +78,17 @@ class DirectoryTree(object):
         inp = ""
         if self.prog_name == "cfour":
             inp = "ZMAT"
+        elif self.prog_name == "xtb":
+            #inp = "input.xyz"
+            inp = "input.coord"
         else:
             inp = "input.dat"
         if os.path.exists(os.getcwd() + "/" + self.dir_name):
             shutil.move(self.dir_name, "old" + self.dir_name)
         os.mkdir(self.dir_name)
         os.chdir("./" + self.dir_name)
-        if not self.deriv_level:
+        #if not self.deriv_level:
+        if self.deriv_level == 0:
             if self.anharm:
                 for i in range(len(self.p_disp)):
                     p_data = self.make_input(
@@ -407,6 +411,28 @@ class DirectoryTree(object):
                 os.chdir("..")
 
                 direc += 2
+        elif self.deriv_level == 2:
+            print("We are doing analytical Hessians. Good luck.")
+            os.mkdir("1")
+            os.chdir("./1")
+            data = self.make_input(
+                data,
+                self.disps.disp_cart["ref"],
+                str(n_atoms),
+                self.zmat.atom_list,
+                self.insertion_index,
+            )
+
+            with open(inp, "w") as file:
+                file.writelines(data)
+            data = data_buff.copy()
+            if init:
+                shutil.copy("../../initden.dat", ".")
+            if genbas:
+                shutil.copy("../../GENBAS", ".")
+            if ecp:
+                shutil.copy("../../ECPDATA", ".")
+            os.chdir("..")
         else:
             print(
                 "Only energy and gradient derivatives are supported. Check your deriv_level keyword."
@@ -424,15 +450,32 @@ class DirectoryTree(object):
             )
             raise RuntimeError
         else:
-            for i in range(int(n_at)):
-                data.insert(
-                    index + i,
-                    space
-                    + at[i]
-                    + "{:16.10f}".format(dispp[i][0])
-                    + "{:16.10f}".format(dispp[i][1])
-                    + "{:16.10f}".format(dispp[i][2])
-                    + "\n",
-                )
+            if self.prog_name == "xtb":
+                for i in range(int(n_at)):
+                    data.insert(
+                        index + i,
+                        space
+                        + "{:16.10f}".format(dispp[i][0])
+                        + "{:16.10f}".format(dispp[i][1])
+                        + "{:16.10f}".format(dispp[i][2])
+                        + " "
+                        + at[i]
+                        + "\n",
+                    )
+            else:
+                for i in range(int(n_at)):
+                    #print(dispp)
+                    #print(dispp[i])
+                    #print(dispp[i][0])
+                    #print(type(dispp[i][0]))
+                    data.insert(
+                        index + i,
+                        space
+                        + at[i]
+                        + "{:16.10f}".format(dispp[i][0])
+                        + "{:16.10f}".format(dispp[i][1])
+                        + "{:16.10f}".format(dispp[i][2])
+                        + "\n",
+                    )
 
         return data

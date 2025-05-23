@@ -125,7 +125,7 @@ class TransfDisp(object):
             # the displacement matrix D[i,j] = D[j,i].
             disp = np.zeros(len(self.eigs.T))
             buff = disp.copy()
-            if not self.deriv_level:
+            if self.deriv_level == 0:
                 if not self.anharm:
                     p_disp = np.zeros((len(self.eigs), len(self.eigs)), dtype=object)
                     m_disp = np.zeros((len(self.eigs), len(self.eigs)), dtype=object)
@@ -539,6 +539,10 @@ class TransfDisp(object):
                     disp = buff.copy()
                 self.p_disp = p_disp
                 self.m_disp = m_disp
+            elif self.deriv_level == 2:
+                print("Analytical Hessian, no displacements needed")
+                self.p_disp = None
+                self.m_disp = None
             else:
                 print(
                     "Only energy and gradient derivatives are supported. Check your deriv_level_init keyword."
@@ -558,7 +562,7 @@ class TransfDisp(object):
 
                 self.p_disp = p_disp
                 self.m_disp = m_disp
-            elif not self.deriv_level:
+            elif self.deriv_level == 0:
                 if self.options.molsym_symmetry:
                     print("The ref geom")
                     print(self.ref_carts)
@@ -651,6 +655,10 @@ class TransfDisp(object):
                     self.m_disp = m_disp
                     #print(self.p_disp)
 
+            elif self.deriv_level == 2:
+                print("Analytical Hessian, no displacements needed")
+                self.p_disp = None
+                self.m_disp = None
         else:
             print(
                 "Please input a displacement coordinate type of either cartesian or internal."

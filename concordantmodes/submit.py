@@ -11,7 +11,43 @@ class Submit(object):
         self.options = options
 
     def run(self):
-        if self.options.cluster != "sapelo":
+        print(f"the cluster name is {self.options.cluster}")
+        if self.options.cluster == "sisyphus":
+            from subprocess import Popen
+            processes = []
+            print(os.getcwd())
+            for z in range(len(self.disp_list)):
+                path = str(z + 1) + "/"
+                pipe = subprocess.PIPE
+                job = subprocess.run(
+                    ["sbatch", "./optstep.sh"], cwd=path, stdout=pipe, stderr=pipe
+                )
+                processes.append(job)
+                #time.sleep(2)
+
+            for q in range(len(processes)):
+                while True:
+                    job = processes[q]
+                    outRegex = r"Submitted\s*batch\s*job(?:-array)?\s*(\d*)"
+                    job_id = int(
+                        re.search(outRegex, job.stdout.decode("UTF-8")).group(1)
+                    )
+                    jobFinRegex = re.compile(r"taskid")
+                    finish = subprocess.run(
+                        ["sacct", "-j", str(job_id)], stdout=pipe, stderr=pipe
+                    )
+                    output = str(finish.stdout.decode("UTF-8"))
+                    if not ("PENDING" in output or "RUNNING" in output):
+                        print(
+                            "job id "
+                            + str(job_id)
+                            + " must be complete or failed "
+                            + str(q)
+                        )
+                        break
+            print("sleeping")
+            time.sleep(4)
+        elif self.options.cluster == "vulcan":
             pipe = subprocess.PIPE
 
             process = subprocess.run(
@@ -35,7 +71,7 @@ class Submit(object):
             error = str(process.stderr)
             pass
 
-        else:
+        elif self.options.cluster == "sapelo":
             from subprocess import Popen
 
             processes = []

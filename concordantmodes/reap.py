@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import re
+from concordantmodes.g_read import GrRead
 
 
 class Reap(object):
@@ -28,14 +29,23 @@ class Reap(object):
         self.anharm = anharm
         self.cma_level = cma_level
         if cma_level == "B":
-            if self.deriv_level:
+            print(f"What is the deriv level for level B {self.deriv_level}")
+            if self.deriv_level == 2:
+                #print(self.options.prog_name)
+                #if self.options.prog_name == "xtb":
+                print("Currently setup regex to search input.engrad file, which has less precision than gradient file")
+                self.gradient_regex = ["The current gradient in Eh\/bohr\s*#", "\s*#\s*The atomic numbers and current coordinates in Bohr"]
+                self.hessian_regex = "\$hessian\s*(.[\S\s]*)" 
+                self.success_regex = "normal termination of xtb"
+            elif self.deriv_level == 1:
                 self.gradient_regex = self.options.gradient_regex
                 self.energy_regex = self.options.energy_regex_init
                 self.success_regex = self.options.success_regex_init
-            else:
+            elif self.deriv_level == 0:
                 self.energy_regex = self.options.energy_regex_init
                 self.success_regex = self.options.success_regex_init
         else: #cma_level = "A"
+            print(f"What is the deriv level for level A {self.deriv_level}")
             if self.deriv_level:
                 self.gradient_regex = self.options.gradient_regex
                 self.energy_regex = self.options.energy_regex
@@ -46,13 +56,18 @@ class Reap(object):
 
     def run(self):
         # Define energy/gradient search regex
-        if not self.deriv_level:
+        if self.deriv_level == 0:
             energy_regex = re.compile(self.energy_regex)
             success_regex = re.compile(self.success_regex)
             self.energies = np.array([])
-        else:
+        elif self.deriv_level == 1:
             grad_regex1 = re.compile(self.gradient_regex[0])
             grad_regex2 = re.compile(self.gradient_regex[1])
+        elif self.deriv_level == 2:
+            grad_regex1 = re.compile(self.gradient_regex[0])
+            grad_regex2 = re.compile(self.gradient_regex[1])
+            hess_regex  = re.compile(self.hessian_regex)
+            success_regex = re.compile(self.success_regex)
         eigs = self.eigs
         if type(eigs) == int:
             size = eigs
@@ -62,7 +77,7 @@ class Reap(object):
         if self.options.second_order:
             size = self.indices[-1][0] + 1
         
-        if not self.deriv_level:
+        if self.deriv_level == 0:
             print(
                 "If something looks wrong with the final frequencies, check these energies!"
             )
@@ -439,7 +454,8 @@ class Reap(object):
                         2 * i + 2 + l, success_regex, energy_regex, False
                     )
                     self.m_e_wxyz.append(energy)
-        else:
+        #else:
+        elif self.deriv_level == 1:
             indices = self.indices
             p_grad_array = np.array([])
             m_grad_array = np.array([])
@@ -456,6 +472,131 @@ class Reap(object):
             self.p_grad_array = p_grad_array.reshape((-1, len(grad)))
             self.m_grad_array = m_grad_array.reshape((-1, len(grad)))
             os.chdir("..")
+        elif self.deriv_level == 2:
+            #if self.options.prog_name == "xtb":
+            print("we reaping xtb hessian and gradient")
+            if self.options.dir_reap:
+                os.chdir("./" + str(1))
+                print(os.getcwd())
+                with open("output.dat", "r") as file:
+                    data = file.read()
+                    #print(f"The data")
+                    #print(data)
+                print(f"This is the success regex {success_regex}")
+                if not re.search(success_regex, data):
+                    print("xTB job failed to run. Check output.dat")
+                    raise RuntimeError
+                file.close()
+                with open("input.engrad", "r") as file:
+                    data = file.read()
+                gr = GrRead('gradient')
+                gr.grad_regex = re.compile(r"(-?\d+\.\d+E-?\d+)")
+                gr.run(np.array([]))
+                print(gr.grad)
+                grad = [float(i) for i in gr.grad]
+                grad = np.array(grad)
+                print(f"this is the gradient we need to pass on")
+                print(grad)
+                 
+                fc_output = ""
+                for i in range(len(grad) // 3):
+                    fc_output += "{:20.10f}".format(grad[3 * i])
+                    fc_output += "{:20.10f}".format(grad[3 * i + 1])
+                    fc_output += "{:20.10f}".format(grad[3 * i + 2])
+                    fc_output += "\n"
+                if len(grad) % 3:
+                    for i in range(len(grad) % 3):
+                        fc_output += "{:20.10f}".format(
+                            grad[3 * (len(grad) // 3) + i]
+                        )
+                    fc_output += "\n"
+                with open('fc_cart.grad', "w+") as file:
+                    file.write(fc_output)
+                file.close()
+                gr = GrRead('hessian')
+
+                gr.run(np.array([]))
+                print(gr.grad)
+                F = [float(i) for i in gr.grad]
+                F = np.array(F)
+                f_len = int(np.sqrt(len(F)))
+                F = np.reshape(F,(f_len, f_len))
+                print(F.shape)
+                print(f"this is the hessian we need to pass on")
+                print(F)
+                self.F = F
+                self.g = grad
+                N = int(f_len) 
+                M = int((N+6)/3)
+                fc_output = ""
+                fc_output += "{:5d}{:5d}\n".format(M, N)
+                print("print_const has run")
+                F_print = F.copy()
+                F_print = F_print.flatten()
+                for i in range(len(F_print) // 3):
+                    fc_output += "{:20.10f}".format(F_print[3 * i])
+                    fc_output += "{:20.10f}".format(F_print[3 * i + 1])
+                    fc_output += "{:20.10f}".format(F_print[3 * i + 2])
+                    fc_output += "\n"
+                if len(F_print) % 3:
+                    for i in range(len(F_print) % 3):
+                        fc_output += "{:20.10f}".format(
+                            F_print[3 * (len(F_print) // 3) + i]
+                        )
+                    fc_output += "\n"
+                with open('fc_cart.dat', "w+") as file:
+                    file.write(fc_output)
+
+                #now copy the files back to the Disps_<method> directory
+                cwd = os.getcwd()
+                print(f"the current working directory {cwd}")
+                dwd = cwd + "/../../"
+                print(f"the destination directory {dwd}")
+                #shutil.copyfile(cwd + "/fc_cart.dat", cwd + dwd + "fc_cart.dat")
+                #shutil.copyfile(cwd + "/fc_grad.dat", cwd + dwd + "fc_grad.dat")
+                
+                #uncomment these later?
+                #shutil.copyfile(cwd + "/fc_cart.dat", dwd + "/fc_cart.dat")
+                #shutil.copyfile(cwd + "/fc_cart.grad", dwd + "/fc_cart.grad")
+
+
+
+                ##result = re.findall('pattern1(.*)pattern2', text, re.DOTALL)
+                #print(self.gradient_regex[0] + '(.*)' + self.gradient_regex[1])
+                #result = re.findall(self.gradient_regex[0] + '(.*)' + self.gradient_regex[1], data, re.DOTALL)
+                #print("This is the result")
+                #print(result)
+                #gradient = []
+                #for l, line in enumerate(result[0].split()):
+                #    if line == "#":
+                #        break
+                #    print(f"l {l}")
+                #    print(line)
+                #    g_comp = float(line)
+                #    gradient.append(g_comp)
+                #gradient = np.array(gradient)
+                #print(f"The gradient {gradient}")
+                #file.close()
+                #with open("hessian", "r") as file:
+                #    data = file.read()
+                # hessian = re.findall(hessian_regex, data)
+                # print("The hessian")
+                # print(hessian)
+                os.chdir("..")
+            else:
+                with open("output.1.dat", "r") as file:
+                    data = file.read()
+                if not re.search(success_regex, data):
+                    print("Energy failed at " + str("ref"))
+                    raise RuntimeError
+                file.close()
+            #with open("input.engrad", "r") as file:
+            #    data = file.read()
+            ##result = re.findall('pattern1(.*)pattern2', text, re.DOTALL)
+            #print(self.gradient_regex[0] + '(.*)' + self.gradient_regex[0])
+            #result = re.findall(self.gradient_regex[0] + '(.*)' + self.gradient_regex[1], data, re.DOTALL)
+            ##ref_en = float(re.findall(energy_regex, data)[0])
+
 
 
     def reap_energies(self, direc, success_regex, energy_regex, diag):

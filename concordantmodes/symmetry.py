@@ -272,6 +272,7 @@ class Symmetry(object):
         return sym_disps
 
     def mode_symmetry_sort(self,TED,sym_sort,freqs):
+        print(f"Inside symmetry sort, the freqs {freqs}")
         ref_TED_init = TED
         sym_modes = []
         for irrep in sym_sort:
@@ -284,6 +285,7 @@ class Symmetry(object):
                 # print(irrep)
                 # print(Sum)
                 if Sum > 80.:
+                    print(f"i j pairs {i, j}")
                     irrep_modes.append(i)
             # print(np.array(irrep)+1)
             # print(np.array(irrep_modes)+1)
@@ -291,7 +293,7 @@ class Symmetry(object):
                 print("Something's wrong with the irrep symmetry sorter:")
                 raise RuntimeError
             sym_modes.append(irrep_modes)
-
+            print(f"The sym modes {sym_modes}")
         sym_freqs = copy.deepcopy(sym_modes)
         del_list = []
         for i in range(len(sym_modes)):
@@ -302,6 +304,7 @@ class Symmetry(object):
                 sym_freqs[i].reverse()
             elif len(sym_modes[i]) == 1:
                 del_list.append(i)
+                print(f"The del list {del_list}")
             else:
                 pass
         del_list.reverse()

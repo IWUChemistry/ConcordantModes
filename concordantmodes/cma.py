@@ -28,6 +28,7 @@ from concordantmodes.ted import TED
 from concordantmodes.transf_disp import TransfDisp
 from concordantmodes.vulcan_template import VulcanTemplate
 from concordantmodes.sapelo_template import SapeloTemplate
+from concordantmodes.sisyphus_template import SisyphusTemplate
 from concordantmodes.zmat import Zmat
 
 
@@ -222,7 +223,22 @@ class ConcordantModes(object):
                 for i in os.listdir(rootdir + "/DispsInit"):
                     disp_list.append(i)
 
-                if self.options.cluster != "sapelo":
+                if self.options.cluster == "sisyphus":
+                    s_template = SisyphusTemplate(
+                        self.options, len(disp_list), prog_name_init, prog_init
+                    )
+                    out = s_template.run()
+                    with open("optstep.sh", "w") as file:
+                        file.write(out)
+                    for z in range(0, len(disp_list)):
+                        source = os.getcwd() + "/optstep.sh"
+                        os.chdir("./" + str(z + 1))
+                        destination = os.getcwd()
+                        shutil.copy2(source, destination)
+                        os.chdir("../")
+                    sub = Submit(disp_list, self.options)
+                    sub.run()
+                elif self.options.cluster == "vulcan":
                     v_template = VulcanTemplate(
                         self.options, len(disp_list), prog_name_init, prog_init
                     )
@@ -232,6 +248,21 @@ class ConcordantModes(object):
 
                     # Submits an array, then checks if all jobs have finished every
                     # 10 seconds.
+                    sub = Submit(disp_list, self.options)
+                    sub.run()
+                elif self.options.cluster == "sisyphus":
+                    s_template = SisyphusTemplate(
+                        self.options, len(disp_list), prog_name_init, prog_init
+                    )
+                    out = s_template.run()
+                    with open("optstep.sh", "w") as file:
+                        file.write(out)
+                    for z in range(0, len(disp_list)):
+                        source = os.getcwd() + "/optstep.sh"
+                        os.chdir("./" + str(z + 1))
+                        destination = os.getcwd()
+                        shutil.copy2(source, destination)
+                        os.chdir("../")
                     sub = Submit(disp_list, self.options)
                     sub.run()
                 else:
@@ -522,7 +553,22 @@ class ConcordantModes(object):
             # print(disp_list)
 
             # Generates the submit script for the displacements.
-            if self.options.cluster != "sapelo":
+            if self.options.cluster == "sisyphus":
+                s_template = SisyphusTemplate(
+                    self.options, len(disp_list), progname, prog
+                )
+                out = s_template.run()
+                with open("optstep.sh", "w") as file:
+                    file.write(out)
+                for z in range(0, len(disp_list)):
+                    source = os.getcwd() + "/optstep.sh"
+                    os.chdir("./" + str(z + 1))
+                    destination = os.getcwd()
+                    shutil.copy2(source, destination)
+                    os.chdir("../")
+                sub = Submit(disp_list, self.options)
+                sub.run()
+            elif self.options.cluster == "vulcan":
                 v_template = VulcanTemplate(
                     self.options, len(disp_list), progname, prog
                 )
@@ -940,7 +986,22 @@ class ConcordantModes(object):
                 disp_list = []
                 for i in os.listdir(rootdir + "/anharmDispsInit"):
                     disp_list.append(i)
-                if self.options.cluster != "sapelo":
+                if self.options.cluster == "sisyphus":
+                    s_template = SisyphusTemplate(
+                        self.options, len(disp_list), progname, prog
+                    )
+                    out = s_template.run()
+                    with open("optstep.sh", "w") as file:
+                        file.write(out)
+                    for z in range(0, len(disp_list)):
+                        source = os.getcwd() + "/optstep.sh"
+                        os.chdir("./" + str(z + 1))
+                        destination = os.getcwd()
+                        shutil.copy2(source, destination)
+                        os.chdir("../")
+                    sub = Submit(disp_list, self.options)
+                    sub.run()
+                elif self.options.cluster == "vulcan":
                     v_template = VulcanTemplate(
                         self.options, len(disp_list), progname, prog
                     )
@@ -952,6 +1013,7 @@ class ConcordantModes(object):
                     # 10 seconds.
                     sub = Submit(disp_list, self.options)
                     sub.run()
+
                 else:
                     s_template = SapeloTemplate(
                         self.options, len(disp_list), progname, prog
