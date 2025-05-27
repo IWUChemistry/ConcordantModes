@@ -51,7 +51,7 @@ class DirectoryTree(object):
 
         n_atoms = len(self.zmat.atom_list)
 
-        if prog_name == "molpro" or prog_name == "psi4" or prog_name == "cfour" or prog_name == "xtb":
+        if prog_name == "molpro" or prog_name == "psi4" or prog_name == "cfour" or prog_name == "xtb" or prog_name == "xtb_gfn1":
             with open(self.template, "r") as file:
                 data = file.readlines()
             if self.options.pert_off_diag:
@@ -78,7 +78,7 @@ class DirectoryTree(object):
         inp = ""
         if self.prog_name == "cfour":
             inp = "ZMAT"
-        elif self.prog_name == "xtb":
+        elif self.prog_name == "xtb" or "xtb_gfn1":
             #inp = "input.xyz"
             inp = "input.coord"
         else:
@@ -412,7 +412,6 @@ class DirectoryTree(object):
 
                 direc += 2
         elif self.deriv_level == 2:
-            print("We are doing analytical Hessians. Good luck.")
             os.mkdir("1")
             os.chdir("./1")
             data = self.make_input(
@@ -450,7 +449,7 @@ class DirectoryTree(object):
             )
             raise RuntimeError
         else:
-            if self.prog_name == "xtb":
+            if self.prog_name == "xtb" or "xtb_gfn1":
                 for i in range(int(n_at)):
                     data.insert(
                         index + i,

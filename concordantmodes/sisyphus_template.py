@@ -16,7 +16,9 @@ class SisyphusTemplate(object):
                 output.dat input.dat",
             "psi4": "psi4 -n $NSLOTS",
             "cfour": prog + "+vectorization",
-            "xtb" : "xtb input.coord --hess --grad"
+            #"xtb" : "xtb input.coord #--hess --grad"
+            "xtb" : "xtb input.coord",
+            "xtb_gfn1" : "xtb --gfn 1 input.coord",
         }
         self.odict = {
             "q": options.queue,
@@ -59,7 +61,7 @@ echo "Job \$SLURM_JOB_ID running on \$HOSTNAME"
 echo "CPU affinity:"
 taskset -cp $$
 """
-        elif self.prog_name == "xtb":
+        elif self.prog_name == "xtb" or "xtb_gfn1":
             self.sisyphus_template = """#!/bin/bash
 #SBATCH --job-name=Concordant             # Job name
 #SBATCH --partition=batch               # Partition (queue) name
@@ -72,9 +74,9 @@ taskset -cp $$
 source /nfs/cluster_config/modules.sh
 module load xtb/6.7.1
 
-eval "$(conda shell.bash hook)"
-# Load their personal Conda environment
-conda activate xtbenv
+#eval "$(conda shell.bash hook)"
+## Load their personal Conda environment
+#conda activate xtbenv
 #capture the submission directory
 SUBMIT_DIR="$SLURM_SUBMIT_DIR"
 
