@@ -17,8 +17,7 @@ class SisyphusTemplate(object):
             "psi4": "psi4 -n $NSLOTS",
             "cfour": prog + "+vectorization",
             #"xtb" : "xtb input.coord #--hess --grad"
-            "xtb" : "xtb input.coord",
-            "xtb_gfn1" : "xtb --gfn 1 input.coord",
+            "xtb" : "input.coord",
         }
         self.odict = {
             "q": options.queue,
@@ -28,6 +27,7 @@ class SisyphusTemplate(object):
             "prog": prog,
             "tc": str(job_num),
             "cline": self.progdict[prog_name],
+            "xtb_variant": options.xtb_variant
         }
         # This can be inserted back in if the sync keyword is sorted
         # $ -sync y
@@ -61,7 +61,7 @@ echo "Job \$SLURM_JOB_ID running on \$HOSTNAME"
 echo "CPU affinity:"
 taskset -cp $$
 """
-        elif self.prog_name == "xtb" or "xtb_gfn1":
+        elif self.prog_name == "xtb":
             self.sisyphus_template = """#!/bin/bash
 #SBATCH --job-name=Concordant             # Job name
 #SBATCH --partition=batch               # Partition (queue) name
@@ -83,7 +83,7 @@ SUBMIT_DIR="$SLURM_SUBMIT_DIR"
 #scratch directory
 SCRATCH_DIR="/scratch/$USER/$SLURM_JOB_ID"
 
-srun --cpu-bind=verbose {cline}
+srun --cpu-bind=verbose {xtb_variant} {cline}
 
 
 echo "Job \$SLURM_JOB_ID running on \$HOSTNAME"
