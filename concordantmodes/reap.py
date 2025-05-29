@@ -490,7 +490,7 @@ class Reap(object):
                 with open("input.engrad", "r") as file:
                     data = file.read()
                 gr = GrRead('gradient')
-                gr.grad_regex = re.compile(r"(-?\d+\.\d+E-?\d+)")
+                gr.grad_regex = re.compile(r"(-?\d+\.\d+E[-+]?\d+)")
                 gr.run(np.array([]))
                 print(gr.grad)
                 grad = [float(i) for i in gr.grad]
@@ -556,8 +556,9 @@ class Reap(object):
                 #shutil.copyfile(cwd + "/fc_grad.dat", cwd + dwd + "fc_grad.dat")
                 
                 #uncomment these later?
-                #shutil.copyfile(cwd + "/fc_cart.dat", dwd + "/fc_cart.dat")
-                #shutil.copyfile(cwd + "/fc_cart.grad", dwd + "/fc_cart.grad")
+                shutil.copyfile(cwd + "/fc_cart.dat", dwd + "/fc_cart.dat")
+                shutil.copyfile(cwd + "/fc_cart.grad", dwd + "/fc_cart.grad")
+                os.chdir("../")
 
 
 

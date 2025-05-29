@@ -27,6 +27,8 @@ class ForceConstant(object):
         ref_en,
         options,
         indices,
+        F = None,
+        Grad = None,
         deriv_level=0,
         anharm=False,
         anharm_indices=[],
@@ -46,6 +48,8 @@ class ForceConstant(object):
         self.p_anharm = p_anharm
         self.m_anharm = m_anharm
         self.coord_type_init = coord_type_init
+        self.F = F
+        self.Grad = Grad
 
     def run(self):
         indices = self.indices
@@ -285,6 +289,9 @@ class ForceConstant(object):
                     self.f_quart[d, c, b, a] = self.f_quart[a, b, c, d]
         elif self.deriv_level == 1:
             self.FC = (self.p_array - self.m_array) / (2 * self.disp.disp[0])
+        elif self.deriv_level == 2:
+            print("Retrieving analytical Hessian & Gradient")
+            self.FC = self.F
         else:
             print("Higher order deriv_level computations aren't yet supported")
             raise RuntimeError

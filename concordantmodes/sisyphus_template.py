@@ -27,7 +27,8 @@ class SisyphusTemplate(object):
             "prog": prog,
             "tc": str(job_num),
             "cline": self.progdict[prog_name],
-            "xtb_variant": options.xtb_variant
+            "xtb_variant": options.xtb_variant,
+            "xtb_addtl_opts": options.xtb_addtl_opts,
         }
         # This can be inserted back in if the sync keyword is sorted
         # $ -sync y
@@ -83,7 +84,7 @@ SUBMIT_DIR="$SLURM_SUBMIT_DIR"
 #scratch directory
 SCRATCH_DIR="/scratch/$USER/$SLURM_JOB_ID"
 
-srun --cpu-bind=verbose {xtb_variant} {cline}
+srun --cpu-bind=verbose {xtb_variant} {cline} {xtb_addtl_opts}
 
 
 echo "Job \$SLURM_JOB_ID running on \$HOSTNAME"

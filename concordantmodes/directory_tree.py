@@ -449,7 +449,7 @@ class DirectoryTree(object):
             )
             raise RuntimeError
         else:
-            if self.prog_name == "xtb" or "xtb_gfn1":
+            if self.prog_name == "xtb":
                 for i in range(int(n_at)):
                     data.insert(
                         index + i,

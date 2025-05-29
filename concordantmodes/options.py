@@ -70,3 +70,5 @@ class Options(object):
         self.topo_analysis = kwargs.pop("topo_analysis", False)
         self.topo_max_it = kwargs.pop("topo_max_it", 20)
         self.units = kwargs.pop("units", "HartreeBohr")
+        self.xtb_addtl_opts = kwargs.pop("xtb_addtl_opts", "")
+        self.xtb_variant = kwargs.pop("xtb_variant", "xtb --gfn 2") #gfnff, gfn 0, gfn 1, gfn 2 are available
