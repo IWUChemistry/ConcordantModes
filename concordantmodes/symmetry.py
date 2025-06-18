@@ -72,7 +72,8 @@ class Symmetry(object):
             self.nbfxns = len(ics)
 
             self.package_salcs()
-            
+            print("the salcs")
+            print(self.salcs)
         else:
             """
 		Make your own salcs via manual projection matrix, which is passed into

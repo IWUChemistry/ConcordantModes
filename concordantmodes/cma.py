@@ -156,6 +156,8 @@ class ConcordantModes(object):
                     algo = Algorithm(num_deg_free, cma_level, self.options, self.symm_obj.proj_irreps)
                     algo.run()
                     self.symm_obj.indices_by_irrep = algo.indices_by_irrep
+                    print("the indices")
+                    print(self.symm_obj.indices_by_irrep)
                     #indices = algo.indices
             else:
                 #indices = np.arange(len(eigs_init))
@@ -703,6 +705,9 @@ class ConcordantModes(object):
             #self.options.second_order,
         )
         cart_conv.run()
+        print("Dis be the CMA force constants in cartesian coords")
+        print(cart_conv.F)
+        self.Hessian = cart_conv.F
 
         # if mol2.size != 0:
         #    if self.options.rmsd:

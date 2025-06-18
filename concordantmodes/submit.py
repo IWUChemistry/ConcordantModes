@@ -23,7 +23,7 @@ class Submit(object):
                     ["sbatch", "./optstep.sh"], cwd=path, stdout=pipe, stderr=pipe
                 )
                 processes.append(job)
-                #time.sleep(2)
+                time.sleep(0.5)
 
             for q in range(len(processes)):
                 while True:
@@ -46,7 +46,7 @@ class Submit(object):
                         )
                         break
             print("sleeping")
-            time.sleep(4)
+            time.sleep(8)
         elif self.options.cluster == "vulcan":
             pipe = subprocess.PIPE
 

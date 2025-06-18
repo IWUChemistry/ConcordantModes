@@ -129,6 +129,8 @@ class TransfDisp(object):
                 if not self.anharm:
                     p_disp = np.zeros((len(self.eigs), len(self.eigs)), dtype=object)
                     m_disp = np.zeros((len(self.eigs), len(self.eigs)), dtype=object)
+                    print("symtext transfdisp")
+                    print(self.symm_obj.symtext)
                     if self.symm_obj.symtext is not None and self.options.exploit_pm_symm:
                         print("Molsym is being used. +/- displacements of non TSIR are equivalent.")
                         if self.options.only_TSIR:

@@ -78,9 +78,12 @@ class DirectoryTree(object):
         inp = ""
         if self.prog_name == "cfour":
             inp = "ZMAT"
+        elif self.prog_name == "psi4":
+            inp = "input.dat"
         elif self.prog_name == "xtb" or "xtb_gfn1":
             #inp = "input.xyz"
             inp = "input.coord"
+            #print(no)
         else:
             inp = "input.dat"
         if os.path.exists(os.getcwd() + "/" + self.dir_name):

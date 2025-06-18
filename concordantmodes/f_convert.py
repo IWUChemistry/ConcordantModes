@@ -73,7 +73,10 @@ class FcConv(object):
                 self.print_const()
 
     def print_const(self, fc_name="fcFinal.dat"):
+        np.set_printoptions(precision=15, linewidth=400)
         self.N = len(self.F)
+        print("The force constants we are going to print")
+        print(self.F)
         fc_output = ""
         fc_output += "{:5d}{:5d}\n".format(len(self.zmat.atom_list), self.N)
         print("print_const has run")
